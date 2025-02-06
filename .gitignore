@@ -1,0 +1,20 @@
+# Node.js dependencies
+node_modules/
+
+# Các tệp tạm thời từ IDEs
+.vscode/
+.idea/
+
+# Các tệp log
+*.log
+
+# Các tệp cấu hình của hệ điều hành
+.DS_Store
+Thumbs.db
+
+# Các tệp build hoặc tệp sản phẩm
+dist/
+build/
+
+# Các tệp môi trường
+.env
