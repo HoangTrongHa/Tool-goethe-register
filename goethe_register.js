@@ -1,7 +1,43 @@
 const { chromium } = require('playwright');
+const users = [
+    {
+        email: 'goethe3@mailinator.com',
+        password: 'Hapro321',
+        firstName: 'Vu',
+        lastName: 'Phuong Anh',
+        day: '22',
+        month: '3',
+        year: '1993',
+        postalCode: '10000',
+        location: 'Hà Nội',
+        street: 'Hồ Tùng Mậu',
+        houseNo: '3',
+        phone: '0838584663',
+        placeOfBirth: 'Nam Định'
+    },
+    {
+        email: 'goethe4@mailinator.com',
+        password: 'Hapro321',
+        firstName: 'Vu',
+        lastName: 'Phuong Anh',
+        day: '22',
+        month: '3',
+        year: '1993',
+        postalCode: '10000',
+        location: 'Hà Nội',
+        street: 'Hồ Tùng Mậu',
+        houseNo: '3',
+        phone: '0838584663',
+        placeOfBirth: 'Nam Định'
+    },
+    // Add more user objects here
+];
 
 async function launchBrowser() {
-    return await chromium.launch({ headless: false });
+    return await chromium.launch({ 
+        headless: false,
+        channel: 'chrome',
+    });
 }
 
 async function navigateToPage(page, url) {
@@ -40,199 +76,324 @@ async function clickBtnGruen(applicationElement) {
     }
 }
 
-async function findAndClickContinueButton(page) {
-    const continueButton = await page.locator('main.cs-checkout div.cs-checkout__inner div.cs-checkout__top div.cs-checkout__top-right div.cs-checkout__buttons-wrapper button.cs-button.cs-button--arrow_next');
-    if (await continueButton.count() > 0) {
-        console.log(`🟢 Found ${await continueButton.count()} continue buttons.`);
-        await continueButton.scrollIntoViewIfNeeded();
-        await continueButton.waitFor({ state: 'visible' });
-        await new Promise(resolve => setTimeout(resolve, 500));
-        console.log('⏳ Clicking continue button and waiting for page to load...');
-        await Promise.all([
-            continueButton.click(),
-            page.waitForNavigation({ waitUntil: 'networkidle' })
-        ]);
-        console.log('✅ Page fully loaded! Now proceeding to the next step.');
-    }
-}
-
-async function findAndClickBookForMyself(page) {
-    const bookForMyselfButton = await page.locator('button.cs-button.cs-layer__button.cs-layer__button--high#id13');
-    if (await bookForMyselfButton.count() > 0) {
-        console.log(`🟢 Found ${await bookForMyselfButton.count()} book for myself buttons.`);
-        await bookForMyselfButton.scrollIntoViewIfNeeded();
-        await bookForMyselfButton.waitFor({ state: 'visible' });
-        await new Promise(resolve => setTimeout(resolve, 500));
-        console.log('⏳ Clicking book for myself button and waiting for page to load...');
-        await Promise.all([
-            bookForMyselfButton.click(),
-            page.waitForNavigation({ waitUntil: 'networkidle' })
-        ]);
-        console.log('✅ Page fully loaded! Now proceeding to the next step.');
-    }
-}
-
-async function login(page, username, password) {
-    const loginFormContainer = await page.locator('div#login-form');
-    if (await loginFormContainer.count() > 0) {
-        console.log("Login form container found.");
-        const usernameInput = await loginFormContainer.locator('input#username');
-        if (await usernameInput.count() > 0) {
-            await usernameInput.fill(username);
-            console.log("Username entered.");
-        } else {
-            console.log("Username input not found.");
-        }
-        const passwordInput = await loginFormContainer.locator('input#password');
-        if (await passwordInput.count() > 0) {
-            await passwordInput.fill(password);
-            console.log("Password entered.");
-        } else {
-            console.log("Password input not found.");
-        }
-        const submitButton = await loginFormContainer.locator('input[type="submit"][name="submit"]');
-        if (await submitButton.count() > 0) {
-            console.log(`🟢 Found ${await submitButton.count()} submit buttons.`);
-            await submitButton.scrollIntoViewIfNeeded();
-            await submitButton.waitFor({ state: 'visible' });
+async function findAndClickContinueButton(page, retries = 3) {
+    for (let attempt = 1; attempt <= retries; attempt++) {
+        const continueButton = await page.locator('main.cs-checkout div.cs-checkout__inner div.cs-checkout__top div.cs-checkout__top-right div.cs-checkout__buttons-wrapper button.cs-button.cs-button--arrow_next');
+        const continueButtonCount = await continueButton.count();
+        
+        if (continueButtonCount > 0) {
+            console.log(`🟢 Found ${continueButtonCount} continue buttons.`);
+            await continueButton.scrollIntoViewIfNeeded();
+            await continueButton.waitFor({ state: 'visible' });
             await new Promise(resolve => setTimeout(resolve, 500));
-            console.log('⏳ Clicking submit button and waiting for page to load...');
+            console.log('⏳ Clicking continue button and waiting for page to load...');
             await Promise.all([
-                submitButton.click(),
+                continueButton.click(),
                 page.waitForNavigation({ waitUntil: 'networkidle' })
             ]);
-            console.log("✅ Login button clicked and page fully loaded.");
+            console.log('✅ Page fully loaded! Now proceeding to the next step.');
+            return; // Exit the function if successful
         } else {
-            console.log("Login button not found.");
+            console.log(`Attempt ${attempt} failed: Continue button not found.`);
+            if (attempt < retries) {
+                console.log('Retrying...');
+                await new Promise(resolve => setTimeout(resolve, 1000)); // Wait before retrying
+            } else {
+                console.log('All attempts failed: Continue button not found.');
+            }
         }
-    } else {
-        console.log("Login form container not found.");
     }
 }
 
-async function fillBookingForm(page, firstName, lastName, day, month, year, email) {
+async function findAndClickBookForMyself(page, retries = 3) {
+    for (let attempt = 1; attempt <= retries; attempt++) {
+        const bookForMyselfButton = await page.locator('main.cs-checkout div.cs-checkout__inner div.cs-checkout__content div.cs-checkout__content div.cs-layer button.cs-button:has-text("Book for myself")');
+        const bookForMyselfButtonCount = await bookForMyselfButton.count();
+        
+        if (bookForMyselfButtonCount > 0) {
+            console.log(`🟢 Found ${bookForMyselfButtonCount} book for myself buttons.`);
+            await bookForMyselfButton.scrollIntoViewIfNeeded();
+            await bookForMyselfButton.waitFor({ state: 'visible' });
+            await new Promise(resolve => setTimeout(resolve, 500));
+            console.log('⏳ Clicking book for myself button and waiting for page to load...');
+            await Promise.all([
+                bookForMyselfButton.click(),
+                page.waitForNavigation({ waitUntil: 'networkidle' })
+            ]);
+            console.log('✅ Page fully loaded! Now proceeding to the next step.');
+            return; // Exit the function if successful
+        } else {
+            console.log(`Attempt ${attempt} failed: Book for myself button not found.`);
+            if (attempt < retries) {
+                console.log('Retrying...');
+                await new Promise(resolve => setTimeout(resolve, 1000)); // Wait before retrying
+            } else {
+                console.log('All attempts failed: Book for myself button not found.');
+            }
+        }
+    }
+}
+
+async function login(page, username, password, retries = 3) {
+    for (let attempt = 1; attempt <= retries; attempt++) {
+        const loginFormContainer = await page.locator('div#login-form');
+        if (await loginFormContainer.count() > 0) {
+            console.log("Login form container found.");
+            const usernameInput = await loginFormContainer.locator('input#username');
+            if (await usernameInput.count() > 0) {
+                await usernameInput.fill(username);
+                console.log("Username entered.");
+            } else {
+                console.log("Username input not found.");
+            }
+            const passwordInput = await loginFormContainer.locator('input#password');
+            if (await passwordInput.count() > 0) {
+                await passwordInput.fill(password);
+                console.log("Password entered.");
+            } else {
+                console.log("Password input not found.");
+            }
+            const submitButton = await loginFormContainer.locator('input[type="submit"][name="submit"]');
+            if (await submitButton.count() > 0) {
+                console.log(`🟢 Found ${await submitButton.count()} submit buttons.`);
+                await submitButton.scrollIntoViewIfNeeded();
+                await submitButton.waitFor({ state: 'visible' });
+                await new Promise(resolve => setTimeout(resolve, 500));
+                console.log('⏳ Clicking submit button and waiting for page to load...');
+                await Promise.all([
+                    submitButton.click(),
+                    page.waitForNavigation({ waitUntil: 'networkidle' })
+                ]);
+                console.log("✅ Login button clicked and page fully loaded.");
+                return; // Exit the function if successful
+            } else {
+                console.log("Login button not found.");
+            }
+        } else {
+            console.log("Login form container not found.");
+        }
+        if (attempt < retries) {
+            console.log(`Attempt ${attempt} failed. Retrying...`);
+            await new Promise(resolve => setTimeout(resolve, 1000)); // Wait before retrying
+        } else {
+            console.log('All attempts failed: Login form not found or login button not found.');
+        }
+    }
+}
+
+async function fillBookingForm(page, firstName, lastName, day, month, year) {
     const formContainer = await page.locator('main.cs-checkout div.cs-checkout__inner div.cs-checkout__content form.cs-form');
     if (await formContainer.count() > 0) {
         console.log("Form container found.");
-        
         // Fill in First Name
-        const firstNameInput = await formContainer.locator('input[name="accountPanel:basicData:body:firstName:inputContainer:input"]');
-        if (await firstNameInput.count() > 0) {
-            await firstNameInput.fill(firstName);
-            console.log("First name entered.");
-        } else {
-            console.log("First name input not found.");
-        }
+        await fillInputField(formContainer, 'accountPanel:basicData:body:firstName:inputContainer:input', firstName);
         
         // Fill in Last Name
-        const lastNameInput = await formContainer.locator('input[name="accountPanel:basicData:body:lastName:inputContainer:input"]');
-        if (await lastNameInput.count() > 0) {
-            await lastNameInput.fill(lastName);
-            console.log("Last name entered.");
-        } else {
-            console.log("Last name input not found.");
-        }
+        await fillInputField(formContainer, 'accountPanel:basicData:body:lastName:inputContainer:input', lastName);
 
         // Fill in Date of Birth - Day
-        const dayButton = await formContainer.locator('button.cs-html-select__trigger[title="Day"]');
-        if (await dayButton.count() > 0) {
-            await dayButton.click();
-            console.log("Day dropdown opened.");
-        } else {
-            console.log("Day dropdown button not found.");
-        }
-        
-        // Tìm ngày trong dropdown
-        const dayOption = await formContainer.locator(`li.cs-html-select__menu-item[data-original-index="${day}"]:has-text("${day}")`);
-        if (await dayOption.count() > 0) {
-            // Kiểm tra và click vào phần tử
-            await dayOption.click();
-            // console.log("Day selected.", dayOption.count());
-        } else {
-            console.log("Day option not found.");
-        }
-        
+        await selectDropdownOption(formContainer, "Day", day, day);
+
         // Fill in Date of Birth - Month
-        const monthButton = await formContainer.locator('button.cs-html-select__trigger[title="Month"]');
-        if (await monthButton.count() > 0) {
-            await monthButton.click();
-            console.log("Month dropdown opened.");
-            
-            // Tìm tháng trong dropdown
-            const monthOption = await formContainer.locator(`ul.cs-html-select__menu-list li.cs-html-select__menu-item[data-original-index="${month}"]:has-text("${month}")`);
-            const monthOptionCount = await monthOption.count();
-            if (monthOptionCount > 0) {
-                console.log(`🟢 Found ${monthOptionCount} month options.`);
-                // Kiểm tra và click vào phần tử
-                await monthOption.click();
-                console.log("Month selected.", monthOption);
-            } else {
-                console.log("Month option not found.");
-            }
-        } else {
-            console.log("Month dropdown button not found.");
-        }
-
+        await selectDropdownOption(formContainer, "Month", month, convertMonthToText(month));
+        
         // Fill in Date of Birth - Year
-        const yearButton = await formContainer.locator('button.cs-html-select__trigger[title="Year"]');
-        if (await yearButton.count() > 0) {
-            await yearButton.click();
-            console.log("Year dropdown opened.");
-            
-            // Tìm năm trong dropdown
-            const yearOption = await formContainer.locator(`ul.cs-html-select__menu-list li.cs-html-select__menu-item[data-original-index="${year}"]:has-text("${year}")`);
-            const yearOptionCount = await yearOption.count();
-            if (yearOptionCount > 0) {
-                console.log(`🟢 Found ${yearOptionCount} year options.`);
-                // Kiểm tra và click vào phần tử
-                await yearOption.click();
-                console.log("Year selected.", yearOption);
-            } else {
-                console.log("Year option not found.");
-            }
+        await selectDropdownOption(formContainer, "Year", year - 1925, year);
+
+        // Fill in Email (if needed)
+
+        // Submit the form (if required)
+        const continueButton = await page.locator('div.cs-checkout__inner div.cs-checkout__top button.cs-button.cs-button--arrow_next:has-text("continue")');        
+        if (await continueButton.count() > 0) {
+            await Promise.all([
+                continueButton.click(),
+                await page.waitForLoadState('domcontentloaded')
+            ]);
+            console.log("Form submitted.");
         } else {
-            console.log("Year dropdown button not found.");
+            console.log("Submit button not found.");
         }
-
-        // // Fill in Email (if needed)
-        // const emailInput = await formContainer.locator('input[name="accountPanel:basicData:body:email:inputContainer:input"]');
-        // if (await emailInput.count() > 0) {
-        //     await emailInput.fill(email);
-        //     console.log("Email entered.");
-        // } else {
-        //     console.log("Email input not found.");
-        // }
-
-        // // Submit the form (if required)
-        // const submitButton = await formContainer.locator('button.cs-button[type="button"]');
-        // if (await submitButton.count() > 0) {
-        //     await submitButton.scrollIntoViewIfNeeded();
-        //     await submitButton.waitFor({ state: 'visible' });
-        //     await submitButton.click();
-        //     console.log("Form submitted.");
-        // } else {
-        //     console.log("Submit button not found.");
-        // }
     } else {
         console.log("Form container not found.");
     }
 }
 
+async function fillPersonalForm(page, postalCode, location, stress, houseNo, phone, placeOfBBirth) {
+    const formContainer = await page.locator('main.cs-checkout div.cs-checkout__inner div.cs-checkout__content form.cs-form');
+    if (await formContainer.count() > 0) {
+        console.log("Form container found.", formContainer);
+        
+       // Fill in Postal Code
+       await fillInputField(formContainer, 'accountPanel:furtherData:body:postalCode:inputContainer:input', postalCode);
+
+       // Fill in Location
+       await fillInputField(formContainer, 'accountPanel:furtherData:body:city:inputContainer:input', location);
+       
+       // Fill in Location
+       await fillInputField(formContainer, 'accountPanel:furtherData:body:street:inputContainer:input', stress);
+       
+       // Fill in Location
+       await fillInputField(formContainer, 'accountPanel:furtherData:body:street:inputContainer:input', stress);
+       
+       // Fill in Location
+       await fillInputField(formContainer, 'accountPanel:furtherData:body:houseNo:inputContainer:input', houseNo);
+       
+       // Fill in Location
+       await fillInputField(formContainer, 'accountPanel:furtherData:body:mobilePhone:input2Container:input2', phone);
+       await selectDropdownOption(formContainer, "Why are you taking the exam?", '1', convertMotivationText('1'));
+
+       // Fill in Location
+       await fillInputField(formContainer, 'accountPanel:furtherData:body:birthplace:inputContainer:input', placeOfBBirth);
+        
+       const checkboxInput = await formContainer.locator('input[name="accountPanel:moreInfo:newsletter:checkboxContainer:input"]');
+        if (await checkboxInput.count() > 0) {
+            // checkboxInput.click();
+            const checkboxLabel = await checkboxInput.locator('..');
+            if (await checkboxLabel.count() > 0) {
+                await checkboxLabel.click();
+                console.log("Checkbox label clicked.");
+            } else {
+                console.log("Checkbox label not found.");
+            }
+        } else {
+            console.log("Checkbox input not found.");
+        }
+        // Submit the form (if required)
+        const continueButton = await page.locator('div.cs-checkout__inner div.cs-checkout__top button.cs-button.cs-button--arrow_next:has-text("continue")');        
+        if (await continueButton.count() > 0) {
+            await Promise.all([
+                continueButton.click(),
+                page.waitForNavigation({ waitUntil: 'networkidle' })
+            ]);
+            console.log("Form submitted.");
+        } else {
+            console.log("Submit button not found.");
+        }
+    } else {
+        console.log("Form container not found.");
+    }
+}
+
+async function fillInputField(formContainer, fieldName, value) {
+    const inputField = await formContainer.locator(`input[name="${fieldName}"]`);
+    await inputField.waitFor({ state: 'visible' });
+    if (await inputField.count() > 0) {
+        await inputField.fill(value);
+        console.log(`${fieldName} entered.`);
+    } else {
+        console.log(`${fieldName} input not found.`);
+    }
+}
+// Hàm chuyển đổi số tháng sang chữ
+function convertMonthToText(month) {
+    const months = [
+        "January", "February", "March", "April", "May", "June",
+        "July", "August", "September", "October", "November", "December"
+    ];
+    return months[month - 1] || "";
+}
+
+function convertMotivationText(value) {
+    const mapping = {
+        "0": "Why are you taking the exam?",
+        "1": "Subsequent immigration of spouse",
+        "2": "not specified"
+    };
+    
+    if (mapping.hasOwnProperty(value)) {
+        return mapping[value]; // Trả về giá trị đã map
+    } else {
+        console.error(`❌ Không tìm thấy mapping cho giá trị: ${value}`);
+        return ""; // Tránh trả về undefined gây lỗi
+    }
+}
+
+async function selectDropdownOption(formContainer, title, index, text) {
+    const button = await formContainer.locator(`button.cs-html-select__trigger[title="${title}"]`);
+    if (await button.count() > 0) {
+        await button.click();
+        console.log(`${title} dropdown opened.`);
+        
+        let option;
+        switch (title) {
+            case "Year":
+                option = await formContainer.locator(`ul.cs-html-select__menu-list li.cs-html-select__menu-item:has-text("${text}")`);
+                break;
+            case "Why are you taking the exam?":
+                option = await formContainer.locator(`ul.cs-html-select__menu-list li.cs-html-select__menu-item[data-original-index="${index}"]:has-text("${text}")`);
+                console.log("option", option);
+                break;
+            default:
+                option = await formContainer.locator(`ul.cs-html-select__menu-list li.cs-html-select__menu-item[data-original-index="${index}"]:has-text("${text}")`);
+                break;
+        }
+        
+        const optionCount = await option.count();
+        if (optionCount > 0) {
+            console.log(`🟢 Found ${optionCount} ${title} options.`);
+            await option.click();
+            console.log(`${title} selected.`);
+            await new Promise(resolve => setTimeout(resolve, 500)); // Add delay after click
+        } else {
+            console.log(`${title} option not found.`);
+        }
+    } else {
+        console.log(`${title} dropdown button not found.`);
+    }
+}
+
+async function promotionalCode(page) {
+    // Submit the form (if required)
+    const continueButton = await page.locator('main.cs-checkout div.cs-checkout__inner div.cs-checkout__top-right button.cs-button.cs-button--arrow_next:has-text("continue")');
+    await continueButton.waitFor({ state: 'visible' });
+    // console.log(1);
+    // await new Promise(resolve => setTimeout(resolve, 1000));
+    if (await continueButton.count() > 0) {
+        await Promise.all([
+            continueButton.click(),
+            page.waitForNavigation({ waitUntil: 'networkidle' })
+        ]);
+        console.log("Form submitted.");
+    } else {
+        console.log("Submit button not found.");
+    }
+ }
+
+async function orderSubjectToCharge(page) {
+    // Submit the form (if required)
+    const continueButton = await page.locator('main.cs-checkout div.cs-checkout__bottom button.cs-button.cs-button--arrow_next:has-text("Order, subject to charge")');
+    await continueButton.waitFor({ state: 'visible' });
+    await new Promise(resolve => setTimeout(resolve, 1000));
+    if (await continueButton.count() > 0) {
+        await Promise.all([
+            continueButton.click(),
+            page.waitForNavigation({ waitUntil: 'networkidle' })
+        ]);
+        console.log("Form submitted.");
+    } else {
+        console.log("Submit button not found.");
+    }
+ }
 
 (async () => {
-    const browser = await launchBrowser();
-    const page = await browser.newPage();
-    await navigateToPage(page, 'https://www.goethe.de/ins/th/en/spr/prf/gzb1.cfm');
-    await acceptCookies(page);
-    const applicationElement = await findApplicationElement(page);
-    if (await applicationElement.count() > 0) {
-        await clickBtnGruen(applicationElement);
-        await findAndClickContinueButton(page);
-        await findAndClickBookForMyself(page);
-        await login(page, 'anhphuongvu.de@gmail.com', 'Zia@1234');
-        await fillBookingForm(page, 'Vu', 'Phuong Anh', '22', '3', '1993');
-    } else {
-        console.log('Element with class "application" not found');
-    }
-    // await browser.close();
+    await Promise.all(users.map(async (user) => { 
+        const browser = await launchBrowser();
+        const page = await browser.newPage();
+        await navigateToPage(page, 'https://www.goethe.de/ins/vn/en/sta/hcm/prf/gzsd1.cfm');
+        await acceptCookies(page);
+        const applicationElement = await findApplicationElement(page);
+        if (await applicationElement.count() > 0) {
+            await clickBtnGruen(applicationElement);
+            await findAndClickContinueButton(page);
+            await findAndClickBookForMyself(page);
+            await login(page, user.email, user.password);
+            await fillBookingForm(page, user.firstName, user.lastName, user.day, user.month, user.year);
+            await fillPersonalForm(page, user.postalCode, user.location, user.street, user.houseNo, user.phone, user.placeOfBirth);
+            await promotionalCode(page);
+            await promotionalCode(page);
+            await orderSubjectToCharge(page);
+        } else {
+            console.log('Element with class "application" not found');
+        }
+    }));
 })();
