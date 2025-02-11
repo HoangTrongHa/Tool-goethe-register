@@ -1,4 +1,8 @@
+
 const { chromium } = require('playwright');
+require('dotenv').config();
+const capsolver = require('./resolve_capcha.js');
+
 const users = [
     {
         email: 'goethe3@mailinator.com',
@@ -379,8 +383,10 @@ async function orderSubjectToCharge(page) {
     await Promise.all(users.map(async (user) => { 
         const browser = await launchBrowser();
         const page = await browser.newPage();
-        await navigateToPage(page, 'https://www.goethe.de/ins/vn/en/sta/hcm/prf/gzsd1.cfm');
+        await navigateToPage(page, process.env.GOETHE_URL_HCM_A1);
         await acceptCookies(page);
+        // const token = await capsolver();
+        // console.log(token);
         const applicationElement = await findApplicationElement(page);
         if (await applicationElement.count() > 0) {
             await clickBtnGruen(applicationElement);
