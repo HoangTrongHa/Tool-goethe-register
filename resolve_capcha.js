@@ -9,8 +9,8 @@ export async function capsolver() {
     clientKey: 'CAP-FDFF6D277C8874B981E25794A04C3301B6842C8C9423DF63E3856F0BF5828EDE',
     task: {
       type: 'ReCaptchaV3TaskProxyLess',
-      websiteKey: '6LeI9M4mAAAAAMldyzs_29GsJ5UG5AgFzB8iR24c',
-      websiteURL: 'https://www.goethe.de/'
+      websiteKey: site_key,
+      websiteURL: site_url
     }
   };
 

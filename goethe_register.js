@@ -392,15 +392,42 @@ async function orderSubjectToCharge(page) {
             await clickBtnGruen(applicationElement);
             await findAndClickContinueButton(page);
             await findAndClickBookForMyself(page);
+            // await page.evaluate((token) => {
+            //     document.querySelector('textarea[name="g-recaptcha-response"]').value = token;
+            // }, token);
             await login(page, user.email, user.password);
+            // await page.evaluate((token) => {
+            //     document.querySelector('textarea[name="g-recaptcha-response"]').value = token;
+            // }, token);
             await fillBookingForm(page, user.firstName, user.lastName, user.day, user.month, user.year);
+            await page.evaluate((token) => {
+                const recaptchaField = document.querySelector('textarea[name="g-recaptcha-response"]');
+                console.log('Before setting token:', recaptchaField.value);
+                document.querySelector('textarea[name="g-recaptcha-response"]').value = token;
+                console.log('aFTER setting token:', recaptchaField.value);
+            }, token);
             await fillPersonalForm(page, user.postalCode, user.location, user.street, user.houseNo, user.phone, user.placeOfBirth);
-            await promotionalCode(page);
+            await page.evaluate((token) => {
+                const recaptchaField = document.querySelector('textarea[name="g-recaptcha-response"]');
+                console.log('Before setting token:', recaptchaField.value);
+                document.querySelector('textarea[name="g-recaptcha-response"]').value = token;
+                console.log('aFTER setting token:', recaptchaField.value);
+            }, token);
             await promotionalCode(page);
             await page.evaluate((token) => {
+                const recaptchaField = document.querySelector('textarea[name="g-recaptcha-response"]');
+                console.log('Before setting token:', recaptchaField.value);
                 document.querySelector('textarea[name="g-recaptcha-response"]').value = token;
+                console.log('aFTER setting token:', recaptchaField.value);
             }, token);
-            await orderSubjectToCharge(page);
+            await promotionalCode(page);
+            await page.evaluate((token) => {
+                const recaptchaField = document.querySelector('textarea[name="g-recaptcha-response"]');
+                console.log('Before setting token:', recaptchaField.value);
+                document.querySelector('textarea[name="g-recaptcha-response"]').value = token;
+                console.log('aFTER setting token:', recaptchaField.value);
+            }, token);
+            // await orderSubjectToCharge(page);
         } else {
             console.log('Element with class "application" not found');
         }
