@@ -1,26 +1,26 @@
 
 const { chromium } = require('playwright');
 require('dotenv').config();
-const capsolver = require('./resolve_capcha.js');
+const { capsolver } = require('./resolve_capcha.js');
 
 const users = [
+    // {
+    //     email: 'goethe3@mailinator.com',
+    //     password: 'Hapro321',
+    //     firstName: 'Vu',
+    //     lastName: 'Phuong Anh',
+    //     day: '22',
+    //     month: '3',
+    //     year: '1993',
+    //     postalCode: '10000',
+    //     location: 'Hà Nội',
+    //     street: 'Hồ Tùng Mậu',
+    //     houseNo: '3',
+    //     phone: '0838584663',
+    //     placeOfBirth: 'Nam Định'
+    // },
     {
-        email: 'goethe3@mailinator.com',
-        password: 'Hapro321',
-        firstName: 'Vu',
-        lastName: 'Phuong Anh',
-        day: '22',
-        month: '3',
-        year: '1993',
-        postalCode: '10000',
-        location: 'Hà Nội',
-        street: 'Hồ Tùng Mậu',
-        houseNo: '3',
-        phone: '0838584663',
-        placeOfBirth: 'Nam Định'
-    },
-    {
-        email: 'goethe4@mailinator.com',
+        email: 'goethe5@mailinator.com',
         password: 'Hapro321',
         firstName: 'Vu',
         lastName: 'Phuong Anh',
@@ -385,8 +385,8 @@ async function orderSubjectToCharge(page) {
         const page = await browser.newPage();
         await navigateToPage(page, process.env.GOETHE_URL_HCM_A1);
         await acceptCookies(page);
-        // const token = await capsolver();
-        // console.log(token);
+        const token = await capsolver();
+        console.log(token);
         const applicationElement = await findApplicationElement(page);
         if (await applicationElement.count() > 0) {
             await clickBtnGruen(applicationElement);
@@ -397,6 +397,9 @@ async function orderSubjectToCharge(page) {
             await fillPersonalForm(page, user.postalCode, user.location, user.street, user.houseNo, user.phone, user.placeOfBirth);
             await promotionalCode(page);
             await promotionalCode(page);
+            await page.evaluate((token) => {
+                document.querySelector('textarea[name="g-recaptcha-response"]').value = token;
+            }, token);
             await orderSubjectToCharge(page);
         } else {
             console.log('Element with class "application" not found');
